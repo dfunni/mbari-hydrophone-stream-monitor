@@ -10,26 +10,114 @@ from pydub import AudioSegment
 import requests
 import time
 import struct
+from scipy import fft
+from sklearn.preprocessing import minmax_scale
 
 
-def mbari_stream(filename, duration_s):
+def mbari_stream(filename, duration):
     stream_url = 'http://streamingv2.shoutcast.com/ocean-soundscape?lang=en-us'
 
     r = requests.get(stream_url, stream=True)
-    print("recording")
-    
+    print(f'Recording for {duration}s.\nPress ctrl-C to stop recording.')
+
     with open(filename, 'wb') as f:
-        #t_end = time.time() + duration_s
+        t0 = time.time()
+
+        for block in r.iter_content(1024):
+            if (time.time() - t0) < duration:
+
+                try:
+                    f.write(block)
+
+                except KeyboardInterrupt:
+                    break
+            else:
+                break
+
+def mbari_raw(n=128, chunk=1024, fs=44100):
+    stream_url = 'http://streamingv2.shoutcast.com/ocean-soundscape?lang=en-us'
+    r = requests.get(stream_url, stream=True)
+
+    plt.ylabel('Frequency [Hz]')
+    plt.xlabel('Time [sec]')
+
+    def get_spectrum(block):
+        block = np.frombuffer(block, dtype=np.int16())
+        f, _, Sxx = signal.spectrogram(block, fs=fs, nfft=chunk)
+        return f, 10*np.log10(Sxx)
+    
+    # block = r.raw.read(chunk)
+    # block = np.frombuffer(block, dtype=np.int16())
+
+    while True:
         try:
-            for block in r.iter_content(1024):
-            #t = time.time()
-            #if time.time() < t_end:
-                f.write(block)
-            #else:
-            #    print("done recording")
-            #    break
+            for block in r.iter_content(chunk):
+                block = np.frombuffer(block, dtype=np.int16())
+                plt.clf()
+                plt.plot(block)
+                plt.pause(0.001)
         except KeyboardInterrupt:
-            pass
+            break
+
+
+def mbari_fft(n=128, chunk=1024, fs=44100):
+    stream_url = 'http://streamingv2.shoutcast.com/ocean-soundscape?lang=en-us'
+    r = requests.get(stream_url, stream=True)
+
+    plt.ylabel('Frequency [Hz]')
+    plt.xlabel('Time [sec]')
+
+    def get_spectrum(block):
+        block = np.frombuffer(block, dtype=np.int16())
+        f, _, Sxx = signal.spectrogram(block, fs=fs, nfft=chunk)
+        return f, 10*np.log10(Sxx)
+    
+    # block = r.raw.read(chunk)
+    # block = np.frombuffer(block, dtype=np.int16())
+
+    while True:
+        try:
+            for block in r.iter_content(chunk):
+                block = np.frombuffer(block, dtype=np.int16())
+                plt.clf()
+                plt.plot(fft(block))
+                plt.pause(0.001)
+        except KeyboardInterrupt:
+            break
+
+
+def mbari_spec(n=128, chunk=1024, fs=44100):
+    stream_url = 'http://streamingv2.shoutcast.com/ocean-soundscape?lang=en-us'
+    r = requests.get(stream_url, stream=True)
+
+    plt.ylabel('Frequency [Hz]')
+    plt.xlabel('Time [sec]')
+
+    def get_spectrum(block):
+        block = np.frombuffer(block, dtype=np.int16())
+        f, _, Sxx = signal.spectrogram(block, fs=fs, nfft=chunk)
+        return f, np.log10(Sxx)
+    
+    block = r.raw.read(chunk)
+    #block = np.reshape(block, (block.shape[0], 1))
+    _, Sxx = get_spectrum(block)
+    h, w = Sxx.shape
+    sxx = np.zeros((h, w*n))
+    t = [*range(w*n)]
+
+    while True:
+        try:
+            for block in r.iter_content(chunk):
+                f, Sxx = get_spectrum(block)
+                Sxx = minmax_scale(Sxx, (0, 1))
+                sxx[:, :w] = Sxx
+                sxx = minmax_scale(sxx, (0, 1))
+                plt.clf()
+                plt.pcolormesh(t, f, sxx, cmap='jet')
+                plt.pause(0.001)
+                sxx = np.roll(sxx, w, axis=1)
+        except KeyboardInterrupt:
+            break
 
 
 def mic_record(filename, time_s, rate=44100):
@@ -81,20 +169,20 @@ def stream_spec(n=128, chunk=1024, fs=44100):
     plt.ylabel('Frequency [Hz]')
     plt.xlabel('Time [sec]')
 
-    def get_spectrum():
+    def get_spectrum(stream, chunk):
         data = stream.read(chunk, exception_on_overflow=False)
         data = np.frombuffer(data, dtype=np.int16())
         f, _, Sxx = signal.spectrogram(data, fs=fs, nfft=1024)
         return f, 10*np.log10(Sxx)
 
-    _, Sxx = get_spectrum()
+    _, Sxx = get_spectrum(stream, chunk)
     h, w = Sxx.shape
     sxx = np.zeros((h, w*n))
     t = [*range(w*n)]
 
     while True:
         try:
-            f, Sxx = get_spectrum()
+            f, Sxx = get_spectrum(stream, chunk)
             sxx[:, :w] = Sxx
             plt.clf()
             plt.pcolormesh(t, f, sxx, cmap='jet')
@@ -108,26 +196,24 @@ def stream_spec(n=128, chunk=1024, fs=44100):
     mic.terminate()
 
 
-def plot_spectrogram(filename):
+def plot_spectrogram(filename, max_freq=24000):
     fs, x = wavfile.read(filename)
-    f, t, sxx0 = signal.spectrogram(x[:,0], fs, nfft=1024)  # channel 0
-    f, t, sxx1 = signal.spectrogram(x[:,1], fs, nfft=1024)  # channel 1
+    f, t, sxx = signal.spectrogram(x[:,0], fs, nfft=1024)  # channel 0
 
-    plt.subplot(211)
-    #plt.pcolormesh(t, f, np.log10(sxx0), cmap='jet')
-    plt.pcolormesh(t, f,np.log(sxx0), cmap='jet')
+    # cut to maximum frequency
+    f = f[f < max_freq]
+    sxx = np.log10(sxx[:f.size])
+    
+    # normalize
+    sxx = (sxx - np.min(sxx)) / (np.max(sxx) - np.min(sxx))
 
+    plt.pcolormesh(t, f, sxx, cmap='jet')
     plt.ylabel('Frequency [Hz]')
     plt.xlabel('Time [sec]')
-    plt.subplot(212)
-    #plt.pcolormesh(t, f, np.log10(sxx1), cmap='jet')
-    plt.pcolormesh(t, f, np.log(sxx1), cmap='jet')
 
-    plt.ylabel('Frequency [Hz]')
-    plt.xlabel('Time [sec]')
     plt.show()
     
-    return t, f, sxx0, sxx1
+    return t, f, sxx
 
 
 def mp3_to_wav(src, dst):
