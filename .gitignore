@@ -1,6 +1,6 @@
 *.mp3
 *.wav
-triton*
+triton*/
 *.pdf
 
 # Byte-compiled / optimized / DLL files
