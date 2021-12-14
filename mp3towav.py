@@ -1,5 +1,4 @@
 import utils
-import os
 import argparse
 
 
@@ -17,5 +16,3 @@ tmp = args.directory + args.filename
 out = args.directory + args.filename[:-4] + '.wav'
 
 utils.mp3_to_wav(tmp, out)
-
-# _ = utils.plot_spectrogram(out)

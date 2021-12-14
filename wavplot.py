@@ -7,7 +7,7 @@ parser = argparse.ArgumentParser(description)
 parser.add_argument('-f', '--filename', type=str, help='filename',
                     default='stream.wav')
 parser.add_argument('-d', '--directory', type=str, help='directory',
-                    default='/Users/dave/data/MBARI_hydrophone_data/')
+                    default='./')
 
 args = parser.parse_args()
 

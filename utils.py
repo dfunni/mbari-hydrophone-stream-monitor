@@ -1,6 +1,5 @@
 import pyaudio
 import wave
-import sys
 import os
 import matplotlib.pyplot as plt
 from scipy import signal
@@ -9,7 +8,6 @@ import numpy as np
 from pydub import AudioSegment
 import requests
 import time
-import struct
 from scipy import fft
 from sklearn.preprocessing import minmax_scale
 
@@ -246,7 +244,3 @@ def play_wav(filename):
 
     # stop stream
     p.terminate()
-
-
-
-
