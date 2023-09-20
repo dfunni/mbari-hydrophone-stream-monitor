@@ -1,6 +1,9 @@
+'''
+Script to convert mp3 to wav
+'''
+
 import utils
 import argparse
-
 
 
 description = """Converts a mp3 file to wav."""

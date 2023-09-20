@@ -1,10 +1,19 @@
+'''
+This script tests methods to record for accurate durations
+'''
+
 import requests
 import argparse
 import time
 
+config_file = "config.yaml"
+
+with open(config_file, "r") as f:
+    config = yaml.load(f, Loader=yaml.FullLoader)
+
 def stream_record(filename, duration):
 
-    stream_url = 'http://streamingv2.shoutcast.com/ocean-soundscape?lang=en-us'
+    stream_url = config['stream_url']
 
     r = requests.get(stream_url, stream=True)
     print(f'Redording for {duration}s.\nPress ctrl-C to stop recording.')
