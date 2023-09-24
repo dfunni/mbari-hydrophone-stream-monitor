@@ -2,9 +2,12 @@ from dash import Dash, html, dcc, callback, Output, Input, State
 # import plotly.express as px
 from cetacean import DataDir, MarsClip, pull_data
 
+import warnings
+warnings.filterwarnings("ignore")
+
 app = Dash(__name__)
 
-data = DataDir("/data/new_data/")
+data = DataDir("assets/data/new_data/")
 datafile_iter = iter(data)
 
 
@@ -25,6 +28,7 @@ app.layout = html.Div([
     html.Div(id='filepath', style={'display': 'none'}),
 ])
 
+
 @callback(
     Output('graph-content', 'src'),
     Output('title', 'children'),
@@ -42,6 +46,7 @@ def update_clip(whale_clicks, no_whale_clicks):
     fig_plt = f'data:image/png;base64,{fig_data}' 
     return fig_plt, title, fpath, fpath
 
+
 @callback(
     Output('whale-update', 'n_clicks'),
     Input('whale-val', 'n_clicks'),
@@ -50,6 +55,7 @@ def update_clip(whale_clicks, no_whale_clicks):
 def whale(n_clicks, filepath):
     n_clicks += 1
     return n_clicks
+
 
 @callback(
     Output('no_whale-update', 'n_clicks'),
@@ -62,4 +68,4 @@ def no_whale(n_clicks, filepath):
 
 
 if __name__ == '__main__':
-    app.run(host="127.0.0.1", port=8080, debug=True)
+    app.run(host="127.0.0.1", port=8050, debug=True)
