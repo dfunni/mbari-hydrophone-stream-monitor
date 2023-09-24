@@ -1,7 +1,0 @@
-spectrogram_params:
-    fs: 48000
-    nfft: 512
-    nperseg: 512
-    noverlap: 128
-    window: 'hann'
-

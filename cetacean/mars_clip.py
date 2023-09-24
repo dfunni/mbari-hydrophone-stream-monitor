@@ -8,28 +8,6 @@ import os
 import base64
 from io import BytesIO
 
-config_file = "config.yaml"
-with open(config_file, "r") as f:
-    config = yaml.safe_load(f.read())
-
-def get_data():
-    os.system('rsync -avz --remove-source-files -e "ssh -i /home/vscode/.ssh/id_rsa" dfunni@192.168.0.141:/home/dfunni/data/* /data/new_data/')
-
-class DataDir(object):
-
-    def __init__(self, directory):
-        self.directory = directory
-        self.file_list = os.listdir(directory)
-    
-    def __iter__(self):
-        self.index = 0
-        return self
-
-    def __next__(self):
-        filepath = self.file_list[self.index]
-        self.index += 1
-        return self.directory + filepath
-
 
 class MarsClip(object):
 
@@ -120,5 +98,3 @@ class MarsClip(object):
         os.rename(self.filepath, new_path)
         self.filepath = new_path
         return self.filepath
-    
-
