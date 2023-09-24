@@ -1,3 +1,6 @@
+"""This script is a python wrapper for rsync command to pull data from raspi server.
+"""
+
 import os
 
 def pull_data():
