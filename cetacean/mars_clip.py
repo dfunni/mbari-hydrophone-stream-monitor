@@ -18,6 +18,10 @@ class MarsClip(object):
         self.samples = np.array(self.audio.get_array_of_samples())[::2] # the samples are interleaved channel samples, channels are equal (mono)
         with open("config.yaml", "r") as f:
             self.config = yaml.safe_load(f.read())
+
+
+    def __del__(self):
+        self.audio = None
                     
 
     # def view_spectrogram(self):
@@ -35,6 +39,7 @@ class MarsClip(object):
         f, t, sxx = spectrogram(self.samples, **self.config['spectrogram_params'])
         return sxx, f, t
     
+
     def get_spec_img_data(self):
         # Generate the figure **without using pyplot**.
         sxx, f, t = self.get_spec_img()
@@ -80,21 +85,21 @@ class MarsClip(object):
     
 
     def mv_whale(self):
-        new_path = os.path.join("/data/whale/", self.filename)
+        new_path = os.path.join("assets/data/whale/", self.filename)
         os.rename(self.filepath, new_path)
         self.filepath = new_path
         return self.filepath
         
 
     def mv_nowhale(self):
-        new_path = os.path.join("/data/no_whale/", self.filename)
+        new_path = os.path.join("assets/data/no_whale/", self.filename)
         os.rename(self.filepath, new_path)
         self.filepath = new_path
         return self.filepath
 
 
     def cp_interesiting(self):
-        new_path = os.path.join("/data/interesting/", self.filename)
+        new_path = os.path.join("assets/data/interesting/", self.filename)
         os.rename(self.filepath, new_path)
         self.filepath = new_path
         return self.filepath
