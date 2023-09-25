@@ -1,5 +1,6 @@
 from dash import Dash, html, dcc, callback, Output, Input, State, ctx
 from cetacean import DataDir, MarsClip, pull_data
+import pandas as pd
 import logging
 import warnings
 warnings.filterwarnings("ignore")
@@ -8,8 +9,7 @@ app = Dash(__name__)
 
 
 ## Setup
-data = DataDir("assets/data/new_data/")
-datafile_iter = iter(data)
+recordings = pd.read_json('assets/recordings.json')
 
 app.layout = html.Div([
     html.Div([

@@ -5,3 +5,5 @@ spectrogram_params:
     noverlap: 128
     window: 'hann'
 
+data_path: "assets/data/"
+
