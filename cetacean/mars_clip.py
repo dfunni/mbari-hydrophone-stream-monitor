@@ -20,21 +20,14 @@ class MarsClip(object):
         self.samples = np.array(self.audio.get_array_of_samples())[::2] # the samples are interleaved channel samples, channels are equal (mono)
 
 
-    def view_spectrogram(self):
-        '''View spectrogram using matplotlib specgram function
-        '''
-        sxx, freqs, t, _ = plt.specgram(self.samples, NFFT=512, noverlap=0, cmap='jet')
-        plt.show()
-
-
     def get_spec_img(self):
-        '''Calculate spectrogram using scipy.signal.spectrogram
-        Returns:
-            sxx: numpy array of spectrogram data
-        '''
-        f, t, sxx = spectrogram(self.samples, **self.config['spectrogram_params'])
-        return sxx, f, t
-    
+            '''Calculate spectrogram using scipy.signal.spectrogram
+            Returns:
+                sxx: numpy array of spectrogram data
+            '''
+            f, t, sxx = spectrogram(self.samples, **self.config['spectrogram_params'])
+            return 10*np.log10(sxx), f, t
+
 
     def get_spec_img_data(self):
         ''' Generate the figure without using pyplot 
@@ -45,15 +38,22 @@ class MarsClip(object):
         ax = fig.add_axes([0.1,0.35, 0.9, 0.65])
         ax.set_yscale("function", functions=(lambda x : abs(x)**.8, lambda x : abs(x)**(1/.8)))
         ax.set_ylim((0, self.config['spectrogram_params']['fs']//2))       
-        ax.pcolormesh(t, f, 10*np.log10(sxx), cmap='jet')
+        ax.pcolormesh(t, f, sxx, cmap='jet')
         buf = BytesIO()
         fig.savefig(buf, format="png")
         # Embed the result in the html output.
         data = base64.b64encode(buf.getbuffer()).decode("ascii")
         return data
-    
 
-    def plot_spec_img(self):
+
+    def plot_specgram(self):
+        '''View spectrogram using matplotlib specgram function
+        '''
+        sxx, freqs, t, _ = plt.specgram(self.samples, NFFT=512, noverlap=0, cmap='jet')
+        plt.show()
+     
+
+    def plot_spectrogram_img(self):
         sxx, f, t = self.get_spec_img()
         
         def forward(x):
