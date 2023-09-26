@@ -10,7 +10,7 @@ from io import BytesIO
 
 class MarsClip(object):
 
-    def __init__(self, filename):
+    def __init__(self, filename, threshold=None):
         with open("config.yaml", "r") as f:
             self.config = yaml.safe_load(f.read())
         self.filename = filename
@@ -18,6 +18,7 @@ class MarsClip(object):
         self.filepath = self.directory + self.filename
         self.audio = AudioSegment.from_mp3(self.filepath)
         self.samples = np.array(self.audio.get_array_of_samples())[::2] # the samples are interleaved channel samples, channels are equal (mono)
+        self.threshold = threshold
 
 
     def get_spec_img(self):
@@ -26,7 +27,8 @@ class MarsClip(object):
                 sxx: numpy array of spectrogram data
             '''
             f, t, sxx = spectrogram(self.samples, **self.config['spectrogram_params'])
-            return 10*np.log10(sxx), f, t
+            sxx[sxx < self.threshold] = self.threshold
+            return 10*np.log10(sxx[:180]), f, t
 
 
     def get_spec_img_data(self):
@@ -50,6 +52,7 @@ class MarsClip(object):
         '''View spectrogram using matplotlib specgram function
         '''
         sxx, freqs, t, _ = plt.specgram(self.samples, NFFT=512, noverlap=0, cmap='jet')
+
         plt.show()
      
 

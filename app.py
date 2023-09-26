@@ -1,4 +1,5 @@
-from dash import Dash, html, dcc, callback, Output, Input, State, ctx
+from dash import Dash, html, dcc, callback, clientside_callback, Output, Input, State, ctx, DiskcacheManager
+import diskcache
 from cetacean import DataDir, MarsClip, pull_data
 import plotly.graph_objs as go
 import plotly.express as px
@@ -10,37 +11,28 @@ import dash_mantine_components as dmc
 import warnings
 warnings.filterwarnings("ignore")
 
-init_df = pd.read_json("recordings.json")
-colorscales = px.colors.named_colorscales()
-colors = {
-    'background': '#3a3f44',
+cache = diskcache.Cache("./cache")
+background_callback_manager = DiskcacheManager(cache)
 
-}
+colorscales = px.colors.named_colorscales()
 
 app = Dash(__name__, external_stylesheets=[dmc.theme.DEFAULT_COLORS])
 
-app.layout = dmc.Container([
-    
+app.layout = dmc.Container([ 
     dmc.Stack([      
         dmc.Title('MARS Data Tagger', id='title', style={'textAlign':'Left'}),
-        html.Div('xx unlabled files', id='remaining', style={'textAlign':'Left'}),
         dmc.Grid([
             dmc.Col([
                 dmc.Button('Pull', id='pull-btn', n_clicks=0, color="red"),
-                dcc.Loading(id='loading-pull',
-                        type="default",
-                        children=html.Div(id='status-box'),
-                ),
+                html.Div(id='status-box'),
             ], span=2),
         ]),
-        dcc.Graph(id='graph-content', 
-            figure={'layout': {
-                'plot_bgcolor': colors['background'],
-                'paper_bgcolor': colors['background'],}
-            }
-        ),
-        dcc.Dropdown(id='dropdown', options=colorscales, value='jet'), 
-        html.Audio(id='audio-control', controls=True),
+        dcc.Graph(id='graph-content'),
+        dmc.Group([
+            html.Audio(id='audio-control', controls=True),
+            dcc.Dropdown(id='dropdown', options=colorscales, value='jet', style={'width': "40%"}),
+        ]),
+        dcc.Slider(id='thresh-slider', min=0, max=1, value=0),
         dmc.Group([  # buttons
             dmc.Button('Whale', id='whale-btn', n_clicks=0, color="red"),
             dmc.Button('No Whale', id='nowhale-btn', n_clicks=0, color="red"),
@@ -54,7 +46,7 @@ app.layout = dmc.Container([
     
     
     html.Div([  # storage / hidden
-        dcc.Store(id='tmp-data', data=init_df.to_json()),
+        dcc.Store(id='tmp-data', data=pd.read_json("recordings.json").to_json()),
         html.Div(id='filepath', hidden=True),
         html.Div(id='last-saved', hidden=True),
     ], hidden=True),
@@ -63,7 +55,6 @@ app.layout = dmc.Container([
 
 @callback(
     Output('filepath', 'children'),
-    Output('remaining', 'children'),
     Output('stats-pie', 'figure'),
     Output('stats-div', 'children'),
     Output('tmp-data', 'data'),
@@ -72,7 +63,6 @@ app.layout = dmc.Container([
     Input('ignore-btn', 'n_clicks'),
     State('tmp-data', 'data'),
     State('filepath', 'children'),
-    
 )
 def update(w_clicks, n_clicks, i_clicks, data, old_file):
     btn_id = ctx.triggered_id
@@ -93,13 +83,14 @@ def update(w_clicks, n_clicks, i_clicks, data, old_file):
     remaining_list = df[df['label'].isna()]['filename'].to_list()
     fig = px.pie(df, names='label', title='Stats:')
     fig.update_traces(textposition='inside', textinfo='percent+label')
+    fig.update_layout(paper_bgcolor="#3a3f44", font_color="#dee2e6")
     stats = f'''
         Total files: | {df.__len__()}
         --- | ---: 
         Whale: | {df[df['label'] == 'whale'].__len__()} 
         No Whale: | {df[df['label'] == 'no_whale'].__len__()} 
         Unlabeled: | {num_remaining}'''
-    return remaining_list[0], f'{num_remaining} unlabled files', fig, stats, df.to_json()
+    return remaining_list[0], fig, stats, df.to_json()
     
 
 @callback(
@@ -108,24 +99,39 @@ def update(w_clicks, n_clicks, i_clicks, data, old_file):
     Output('audio-control', 'src', allow_duplicate=True),
     Input('filepath', 'children'),
     Input("dropdown", "value"),
+    Input('thresh-slider', 'value'),
+    manager=background_callback_manager,
     prevent_initial_call=True)
-def plot(filepath, scale):
-    if ctx.triggered_id == 'filepath':
+def plot(filepath, scale, thresh):
+    if ctx.triggered_id != None:
         print(f'plotting - {filepath}')
-        clip = MarsClip(filepath)
+        clip = MarsClip(filepath, thresh)
         # fig_data = clip.get_spec_img_data()   ## for html.Img 
         # fig_plt = f'data:image/png;base64,{fig_data}'  ## for html.Img 
         fig_data, f, t = clip.get_spec_img() 
-        fig_plt = px.imshow(fig_data, 
+        fig = px.imshow(fig_data, 
                             origin='lower',
                             title=filepath,
                             color_continuous_scale=scale)
+        fig.update_layout(paper_bgcolor="#3a3f44", font_color="#dee2e6", title_xref='paper', title_yref='paper')
         fpath = clip.get_filepath()
         
-        return fig_plt, fpath
-    
+        return fig, fpath
+
+
+clientside_callback(
+    """
+    function updateLoadingState(n_clicks) {
+        return true
+    }
+    """,
+    Output("pull-btn", "loading", allow_duplicate=True),
+    Input("pull-btn", "n_clicks"),
+    prevent_initial_call=True,
+)
 @callback(
     Output('status-box', 'children'),
+    Output('pull-btn', 'loading'),
     Input('pull-btn', 'n_clicks'),
     State('tmp-data', 'data'),
     prevent_initial_call=True
@@ -141,7 +147,7 @@ def pull(n_clicks, data):
     df = pd.concat([df1, df2], ignore_index=True)
     df = df.sort_values('filename', axis=0, ignore_index=True)
     df.to_json('recordings.json')
-    return f'Pulled {len(new_files)} at {dt_string}'
+    return f'Pulled {len(new_files)} at {dt_string}', False
 
 
 if __name__ == '__main__':
