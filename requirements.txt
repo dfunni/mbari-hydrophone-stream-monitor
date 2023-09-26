@@ -7,6 +7,7 @@ diskcache==5.6.3 # dash[diskcache]
 matplotlib==3.8.0
 multiprocess==0.70.15 # dash[diskcache]
 numpy==1.26.0
+# opencv-python==4.8.0.76
 pandas==2.1.1
 pydub==0.24.1
 # pyparsing==2.4.7
