@@ -1,12 +1,14 @@
 # MBARI Hydrophone Stream Monitor
 
-This project will monitor the MBARI hydrophone stream at https://www.mbari.org/soundscape-listening-room/
+Ultimately, this project will monitor the MBARI hydrophone stream at https://www.mbari.org/soundscape-listening-room/ and send out alerts when humpback whales are vocalizing.
 
-The project will contain code to do the following:
-- Listen to hydrophone live
-- Record hydrophone data
-- Plot hydrophone data in the frequency domain
-- Generate waterfall display of recorded and live audio
-- Perform anomoly detection
-- Automate collection of anomolous sounds
-- Perform classification of sounds
+### data-collection 
+shell scripts to collect 10 sec data snippets to build dataset, these are run at regular intervals on a rasberry pi
+### Mars-data-tagger
+dash webapp with the following functionality:
+- data pulls from raspberry pi data collector
+- spectrogram visualization and audio control
+- clip labeling
+- dataset statistics visualization
+
+![](screenshots/MARS-data-tagger.png)
