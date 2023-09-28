@@ -48,7 +48,7 @@ app.layout = dmc.Container([
             ]),
             html.Div(),
             html.Div(),
-            html.Div(),
+            html.Div(id='next'),
         ], cols=4),
         dmc.Group([         ## Graph
             dcc.Graph(id='graph-content', 
@@ -100,13 +100,15 @@ app.layout = dmc.Container([
                     dcc.Input(id="nowhale-inpt", type="number", debounce=True, value=0),
                 ]),
             ]),
-            dash_table.DataTable(id='stats-totals',
-                                 data=stats_totals,
-                                 columns=stats_totals_cols,
-                                 style_cell={'textAlign': 'left',
-                                             'backgroundColor': "#3a3f44",
-                                             'color': "#dee2e6"},
-                                 style_header={'fontWeight': 'bold'}),
+            dmc.Stack([
+                dash_table.DataTable(id='stats-totals',
+                                    data=stats_totals,
+                                    columns=stats_totals_cols,
+                                    style_cell={'textAlign': 'left',
+                                                'backgroundColor': "#3a3f44",
+                                                'color': "#dee2e6"},
+                                    style_header={'fontWeight': 'bold'}),
+            ]),
             dcc.Graph(id='stats-pie'),
             html.Div(),
         ], cols=4),
@@ -114,7 +116,6 @@ app.layout = dmc.Container([
 
     html.Div([  # storage / hidden
         html.Div(id='filepath', children=initial_file, hidden=True),
-        html.Div(id='next', hidden=True),
         html.Div(id='last-saved', hidden=True),
         html.Div(id='iter-state', children='{"whale": 0, "no_whale": 0}', hidden=True)
     ], hidden=True),
@@ -185,7 +186,6 @@ def update_plot(filepath, scale, thresh):
         return None, filepath
 
 
-
 @callback(
     Output('next', 'children'),
     Input('submit-btn', 'n_clicks'),
@@ -241,9 +241,6 @@ def update_stats(next, iter_state):
 
 
     return fig, stats_totals, stats_index
-
-
-
 
 
 clientside_callback(
