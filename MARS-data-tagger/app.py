@@ -18,17 +18,21 @@ background_callback_manager = DiskcacheManager(cache)
 ## plot colorscale options
 colorscales = px.colors.named_colorscales()
 initial_file = os.listdir('assets/data/')[0]
+data_dd_options = ['unlabeled', 'whale+', 'whale', 'no_whale']
 
 ## Table initialization
 stats_totals_cols = [{'name' : 'Label', 'id' : 'Label'}, 
                      {'name' : 'Count', 'id' : 'Count'}]
-stats_totals = [{'Label': 'Whale index', 'Count': 0},
-                {'Label': 'No Whale index', 'Count':  0},
+stats_totals = [{'Label': 'Whale+', 'Count': 0},
+                {'Label': 'Whale', 'Count': 0},
+                {'Label': 'No Whale', 'Count':  0},
                 {'Label': 'Unlabeled', 'Count':  0},
                 {'Label': 'Total files', 'Count': 0}]
 stats_idx_cols = [{'name' : 'Index', 'id' : 'Index'}, 
                   {'name' : 'current / total', 'id' : 'current / total'}]
-stats_idx = [{'Index': 'Whale index', 'current / total': "0 / 0"},
+stats_idx = [{'Index': 'Whale+ index', 'current / total': "0 / 0"},
+             {'Index': 'Whale index', 'current / total': "0 / 0"},
+             {'Index': 'No Whale index', 'current / total':  "0 / 0"},
              {'Index': 'No Whale index', 'current / total':  "0 / 0"}]
 
 
@@ -48,7 +52,7 @@ app.layout = dmc.Container([
             ]),
             html.Div(),
             html.Div(),
-            html.Div(id='next'),
+            html.Div(id='next', children=''),
         ], cols=4),
         dmc.Group([         ## Graph
             dcc.Graph(id='graph-content', 
@@ -57,20 +61,23 @@ app.layout = dmc.Container([
         ]),
         dmc.SimpleGrid([    ## Controls and options
             dmc.Stack([
-                html.Audio(id='audio-control', controls=True),
+                html.Audio(id='audio-control', controls=True, autoPlay=True),
             ]),
             dmc.Stack([
                 dmc.Group([
                     html.B('Tag:'),
                     dcc.RadioItems(id='label-radio', 
-                                options=['Next', 'whale', 'no_whale', 'delete'], 
+                                options=['Next', 'whale+', 'whale', 'no_whale', 'delete'], 
                                 value='Next',
                                 inline=True,
                                 # labelStyle={'margin-right': "20px"},
                                 inputStyle={'margin-right': "5px",
                                             'margin-left': "20px"}),
                 ]),
-                dmc.Button('Submit / Next', id='submit-btn', n_clicks=0, color='red'),
+                dmc.Group([
+                    dmc.Button('Submit / Next', id='submit-btn', n_clicks=0, color='red'),
+                    dmc.Button("Refresh Plot", id='refresh-btn', n_clicks=0, color="red",),
+                ]),
             ]),
             dmc.Stack([     ## statistics
                 html.B('Plot colormap:'),
@@ -81,7 +88,7 @@ app.layout = dmc.Container([
             dmc.Stack([
                 html.B('Data to view:'),
                 dcc.Dropdown(id='label-dd', 
-                             options=['unlabeled', 'no_whale', 'whale'], 
+                             options=data_dd_options, 
                              value='unlabeled'),
             ]),
         ], cols=4),
@@ -95,9 +102,31 @@ app.layout = dmc.Container([
                                              'color': "#dee2e6"},
                                  style_header={'fontWeight': 'bold'},
                                  style_data={}),
-                dmc.Group([
-                    dcc.Input(id="whale-inpt", type="number", debounce=True, value=0),
-                    dcc.Input(id="nowhale-inpt", type="number", debounce=True, value=0),
+                dmc.Stack([
+                    dmc.Grid([
+                        dmc.Col([
+                            html.B('Whale+ index:'),
+                        ], span=4),
+                        dmc.Col([
+                            dcc.Input(id="whale+-inpt", type="number", debounce=True, value=0),
+                        ], span=1),
+                    ]),
+                    dmc.Grid([
+                        dmc.Col([
+                            html.B('Whale index:'),
+                        ], span=4),
+                        dmc.Col([
+                            dcc.Input(id="whale-inpt", type="number", debounce=True, value=0),
+                        ], span=1),
+                    ]),
+                    dmc.Grid([
+                        dmc.Col([
+                            html.B('No Whale index:'),
+                        ], span=4),
+                        dmc.Col([
+                            dcc.Input(id="nowhale-inpt", type="number", debounce=True, value=0),
+                        ], span=1),
+                    ]),
                 ]),
             ]),
             dmc.Stack([
@@ -110,14 +139,14 @@ app.layout = dmc.Container([
                                     style_header={'fontWeight': 'bold'}),
             ]),
             dcc.Graph(id='stats-pie'),
-            html.Div(),
+            html.Div(id='debug'),
         ], cols=4),
     ], spacing='md'),
 
     html.Div([  # storage / hidden
-        html.Div(id='filepath', children=initial_file, hidden=True),
-        html.Div(id='last-saved', hidden=True),
-        html.Div(id='iter-state', children='{"whale": 0, "no_whale": 0}', hidden=True)
+        html.Div(id='filepath', children=initial_file),
+        html.Div(id='last-saved'),
+        html.Div(id='iter-state', children='{"whale+": 0, "whale": 0, "no_whale": 0}')
     ], hidden=True),
 ], fluid=True)
 
@@ -125,37 +154,46 @@ app.layout = dmc.Container([
 @callback(
     Output('iter-state', 'children'),
     Output('filepath', 'children'),
+    Output("whale+-inpt", "value"),
     Output("whale-inpt", "value"),
     Output("nowhale-inpt", "value"),
     Input('label-dd', 'value'),
     Input('next', 'children'), # dummy signal
+    Input("whale+-inpt", "value"),
     Input("whale-inpt", "value"),
     Input("nowhale-inpt", "value"),
     State('iter-state', 'children'))
-def get_file(label, next, whale_inpt, nwhale_inpt, iter_state):
+def get_file(lable_dd, next, whalep_inpt, whale_inpt, nwhale_inpt, iter_state):
     df = pd.read_json('recordings.json')
     state = json.loads(iter_state)
-    
-    if ctx.triggered_id == 'whale-inpt' or ctx.triggered_id == 'nowhale-inpt':
+    inpt = ctx.triggered_id
+    if inpt == 'whale-inpt' or inpt == 'nowhale-inpt' or inpt == 'whale+-inpt':
+        state['whale+'] = max(whalep_inpt - 1, 0)
         state['whale'] = max(whale_inpt - 1, 0)
         state['no_whale'] = max(nwhale_inpt - 1, 0)
+
+    if inpt == 'next' and lable_dd != 'unlabeled': # relabling file
+        updated = next.split(' ')[-1] # get the label
+        if updated != 'Next':
+            state[lable_dd] -= 1 # roll back to the previous index
     
-    if label == 'unlabeled':
-        try:
+    if lable_dd == 'unlabeled':
+        try:        # show first unlabeled file
             filepath = df[df['label'].isna()].iloc[0]
         except:     # error: show the first whale
             filepath = df[df['label'] == 'whale'].iloc[0]
-    else:
-        idx = int(state[label])
+    else:   # viewing previously labled data
+        idx = int(state[lable_dd])
         try:
-            filepath = df[df['label'] == label].iloc[idx]
-            state[label] = idx + 1
+            filepath = df[df['label'] == lable_dd].iloc[idx]
+            state[lable_dd] = idx + 1
         except:     # loop back to the front
-            filepath = df[df['label'] == label].iloc[0]
-            state[label] = 0
-        whale_inpt = state['whale']
-        nwhale_inpt = state['no_whale']
-    return json.dumps(state), filepath.to_json(), whale_inpt, nwhale_inpt
+            filepath = df[df['label'] == lable_dd].iloc[0]
+            state[lable_dd] = 0
+
+    
+
+    return json.dumps(state), filepath.to_json(), state['whale+'], state['whale'], state['no_whale']
 
 
 @callback(
@@ -164,9 +202,10 @@ def get_file(label, next, whale_inpt, nwhale_inpt, iter_state):
     Input('filepath', 'children'),
     Input("color-dropdown", "value"),
     Input('thresh-slider', 'value'),
+    Input('refresh-btn', 'n_clicks'),
     manager=background_callback_manager,
     )
-def update_plot(filepath, scale, thresh):
+def update_plot(filepath, scale, thresh, refresh):
     filepath = json.loads(filepath)
     if ctx.triggered_id != None:
         clip = MarsClip(filepath['filename'])
@@ -178,7 +217,7 @@ def update_plot(filepath, scale, thresh):
                         zmin=thresh[0],
                         zmax=thresh[1],
                         color_continuous_scale=scale)
-        fig.update_layout(paper_bgcolor="#3a3f44", font_color="#dee2e6", title_xref='paper', title_yref='paper')
+        fig.update_layout(paper_bgcolor="#3a3f44", font_color="#dee2e6", title_xref='paper', title_yref='paper', title_x=1)
         fpath = clip.get_filepath()
         return fig, fpath
     else:
@@ -196,17 +235,18 @@ def submit(click, radio, filepath):
     df = pd.read_json('recordings.json')
     filepath = json.loads(filepath)
     if ctx.triggered_id == 'submit-btn':
-        if radio == 'whale':
+        if radio == 'whale+':
+            df.loc[df['filename'] == filepath['filename'], 'label'] = 'whale+'
+        elif radio == 'whale':
             df.loc[df['filename'] == filepath['filename'], 'label'] = 'whale'
         elif radio == 'no_whale':
             df.loc[df['filename'] == filepath['filename'], 'label'] = 'no_whale' 
         elif radio == 'delete':
             print(f"dropping {filepath['filename']}")
             df.drop(df.loc[df['filename'] == filepath['filename']].index, inplace=True)
-        else: # None
+        else: # Next
             pass
         df.to_json('recordings.json')
-    
     return f"{filepath['filename']} marked {radio}"
 
 
@@ -229,17 +269,18 @@ def update_stats(next, iter_state):
                       autosize=False, 
                       width=350,
                       height=350)
+    num_whalep = df[df['label'] == 'whale+'].__len__()
     num_whale = df[df['label'] == 'whale'].__len__()
     num_nowhale = df[df['label'] == 'no_whale'].__len__()
 
-    stats_totals = [{'Label': 'Whale index', 'Count': num_whale},
-                    {'Label': 'No Whale index', 'Count': num_nowhale},
+    stats_totals = [{'Label': 'Whale+', 'Count': num_whalep},
+                    {'Label': 'Whale', 'Count': num_whale},
+                    {'Label': 'No Whale', 'Count': num_nowhale},
                     {'Label': 'Unlabeled', 'Count':  df['label'].isna().sum()},
                     {'Label': 'Total files', 'Count': df.__len__()}]
-    stats_index = [{'Index': 'Whale index', 'current / total': f"{iter_state['whale']} / {num_whale}"},
+    stats_index = [{'Index': 'Whale+ index', 'current / total': f"{iter_state['whale+']} / {num_whalep}"},
+                   {'Index': 'Whale index', 'current / total': f"{iter_state['whale']} / {num_whale}"},
                    {'Index': 'No Whale index', 'current / total':  f"{iter_state['no_whale']} / {num_nowhale}"}]
-
-
     return fig, stats_totals, stats_index
 
 
