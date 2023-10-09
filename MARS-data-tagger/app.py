@@ -1,3 +1,5 @@
+#!/usr/local/bin/python
+
 from dash import Dash, html, dcc, callback, clientside_callback, Output, Input, State, ctx, DiskcacheManager, dash_table
 import diskcache
 from cetacean import MarsClip, pull_data
