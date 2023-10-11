@@ -4,6 +4,7 @@
 triton*/
 *.pdf
 cache/
+recordings.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
