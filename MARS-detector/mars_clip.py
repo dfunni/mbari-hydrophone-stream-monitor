@@ -24,7 +24,7 @@ class MarsClip(object):
             sxx: numpy array of spectrogram data
         '''
         f, t, sxx = spectrogram(self.samples, **self.config['spectrogram_params'])
-        sxx = 10*np.log10(sxx[:180])        
+        sxx = 10*np.log10(sxx[:180, 4:])
         return sxx, f, t
     
     def get_samples(self):

@@ -7,8 +7,8 @@ DATASET_ROOT: '/workspaces/mbari-hydrophone-stream-monitor/MARS-data-tagger/'
 
 MODEL_NAME: 'tbd'
 
-N_EPOCHS: 50
-N_BATCH: 8
+N_EPOCHS: 4
+N_BATCH: 32
 RANDOM_STATE: 256
 SAMPLE_SIZE: 1.0
 TEST_SIZE: 0.2
