@@ -3,6 +3,7 @@
 *.wav
 triton*/
 *.pdf
+*.pth
 cache/
 MARS-data-tagger/recordings.json
 

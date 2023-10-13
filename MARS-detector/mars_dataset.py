@@ -6,7 +6,6 @@ import numpy as np
 import warnings
 warnings.filterwarnings("ignore")
 
-# set_default_tensor_type('torch.cuda.FloatTensor')
 
 class MARSDataset(Dataset):
     def __init__(self, dataframe):

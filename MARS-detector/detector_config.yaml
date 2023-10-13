@@ -5,9 +5,12 @@ OUTPUT_ROOT: /workspaces/mbari-hydrophone-stream-monitor/MARS-detector/'
 DATA_ROOT: '/workspaces/mbari-hydrophone-stream-monitor/MARS-data-tagger/assets/data/'
 DATASET_ROOT: '/workspaces/mbari-hydrophone-stream-monitor/MARS-data-tagger/'
 
-MODEL_NAME: 'tbd'
+DATASET_JSON: '/workspaces/mbari-hydrophone-stream-monitor/MARS-data-tagger/recordings.json'
 
-N_EPOCHS: 4
+MODEL_NAME: 'baseline'
+MODEL_PATH: '/workspaces/mbari-hydrophone-stream-monitor/MARS-detector/models/'
+
+N_EPOCHS: 8
 N_BATCH: 32
 RANDOM_STATE: 256
 SAMPLE_SIZE: 1.0
