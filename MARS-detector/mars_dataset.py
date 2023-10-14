@@ -1,7 +1,5 @@
 from torch.utils.data import Dataset
-# from torch import set_default_tensor_type, isnan
 from mars_clip import MarsClip
-# from torch import from_numpy
 import numpy as np
 import warnings
 warnings.filterwarnings("ignore")
@@ -20,9 +18,6 @@ class MARSDataset(Dataset):
         clip = MarsClip(fname)
         sxx, _, _ = clip.get_spec_img()
         sxx = np.nan_to_num(sxx)
-        
-        sxx = (sxx - sxx.min()) / (sxx.max() - sxx.min())
-        # sxx = from_numpy(sxx,)
-        # sxx = sxx[None,:,:]
+        sxx = (sxx - sxx.min()) / (sxx.max() - sxx.min()) # normalize between 0 and 1
         label = self.label.iloc[idx]
-        return sxx, label
+        return sxx, label, fname

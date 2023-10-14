@@ -7,18 +7,20 @@ DATASET_ROOT: '/workspaces/mbari-hydrophone-stream-monitor/MARS-data-tagger/'
 MODEL_ROOT: '/workspaces/mbari-hydrophone-stream-monitor/MARS-detector/models/'
 
 DATASET_JSON: 'recordings.json'
-MODEL_NAME: 'baseline'
+MODEL_NAME: 'bl2'
 
 TRAIN: False
 SAVE: False
 
 
-N_EPOCHS: 1
+N_EPOCHS: 20
 N_BATCH: 32
 RANDOM_STATE: 256
 SAMPLE_SIZE: 1.0
 TEST_SIZE: 0.2
 CONFIDENCE: 0.15
+LEARNING_RATE: 0.001
+MOMENTUM: 0.9
 
 spectrogram_params:
     fs: 48000
