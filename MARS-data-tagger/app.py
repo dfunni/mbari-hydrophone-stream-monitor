@@ -53,7 +53,10 @@ app.layout = dmc.Container([
                         style={'textAlign': 'left'}),
             ]),
             html.Div(),
-            html.Div(),
+            dcc.Input(id='file-input', 
+                          type='text', 
+                          placeholder='',
+                          debounce=True),
             html.Div(id='next', children=''),
         ], cols=4),
         dmc.Group([         ## Graph
@@ -159,27 +162,33 @@ app.layout = dmc.Container([
     Output("whale+-inpt", "value"),
     Output("whale-inpt", "value"),
     Output("nowhale-inpt", "value"),
+    Output('file-input', 'placeholder'),
     Input('label-dd', 'value'),
     Input('next', 'children'), # dummy signal
     Input("whale+-inpt", "value"),
     Input("whale-inpt", "value"),
     Input("nowhale-inpt", "value"),
+    Input('file-input', 'value'),
     State('iter-state', 'children'))
-def get_file(lable_dd, next, whalep_inpt, whale_inpt, nwhale_inpt, iter_state):
+def get_file(lable_dd, next, whalep_inpt, whale_inpt, nwhale_inpt, txt_inpt, iter_state):
     df = pd.read_json('recordings.json')
     state = json.loads(iter_state)
     inpt = ctx.triggered_id
+    
     if inpt == 'whale-inpt' or inpt == 'nowhale-inpt' or inpt == 'whale+-inpt':
         state['whale+'] = max(whalep_inpt - 1, 0)
         state['whale'] = max(whale_inpt - 1, 0)
         state['no_whale'] = max(nwhale_inpt - 1, 0)
 
-    if inpt == 'next' and lable_dd != 'unlabeled': # relabling file
+    elif inpt == 'file-input':
+        filepath = df[df['filename'] == txt_inpt].iloc[0]
+
+    elif inpt == 'next' and lable_dd != 'unlabeled': # relabling file
         updated = next.split(' ')[-1] # get the label
         if updated != 'Next':
             state[lable_dd] -= 1 # roll back to the previous index
     
-    if lable_dd == 'unlabeled':
+    elif lable_dd == 'unlabeled':
         try:        # show first unlabeled file
             filepath = df[df['label'].isna()].iloc[0]
         except:     # error: show the first whale
@@ -195,7 +204,7 @@ def get_file(lable_dd, next, whalep_inpt, whale_inpt, nwhale_inpt, iter_state):
 
     
 
-    return json.dumps(state), filepath.to_json(), state['whale+'], state['whale'], state['no_whale']
+    return json.dumps(state), filepath.to_json(), state['whale+'], state['whale'], state['no_whale'], filepath['filename']
 
 
 @callback(
@@ -211,7 +220,7 @@ def update_plot(filepath, scale, thresh, refresh):
     filepath = json.loads(filepath)
     if ctx.triggered_id != None:
         clip = MarsClip(filepath['filename'])
-        fig_data, f, t = clip.get_spec_img() 
+        fig_data, _, _ = clip.get_spec_img() 
         fig = px.imshow(fig_data, 
                         origin='lower',
                         title=f"{filepath['filename']} {filepath['label']}",
