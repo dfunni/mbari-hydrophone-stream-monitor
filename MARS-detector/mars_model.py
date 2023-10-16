@@ -11,7 +11,6 @@ class BinaryClassifier(nn.Module):
         self.conv2 = nn.Conv2d(8, 16, 5, padding='same')
         self.conv3 = nn.Conv2d(16, 32, 3, padding='same')
         self.fc1 = nn.Linear(109120, 1024)
-        # self.fc1 = nn.Linear(79360, 1024)
         self.fc2 = nn.Linear(1024, 128)
         self.fc3 = nn.Linear(128, 1)
 
