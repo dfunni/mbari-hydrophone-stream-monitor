@@ -1,0 +1,41 @@
+PROJECT_ROOT: '/workspaces/mbari-hydrophone-stream-monitor/'
+INPUT_ROOT: '/workspaces/mbari-hydrophone-stream-monitor/MARS-detector/'
+OUTPUT_ROOT: /workspaces/mbari-hydrophone-stream-monitor/MARS-detector/'
+
+DATA_ROOT: '/workspaces/mbari-hydrophone-stream-monitor/MARS-data-tagger/assets/data/'
+DATASET_ROOT: '/workspaces/mbari-hydrophone-stream-monitor/MARS-data-tagger/'
+MODEL_ROOT: '/workspaces/mbari-hydrophone-stream-monitor/MARS-detector/models/'
+
+DATASET_JSON: 'recordings.json'
+MODEL_NAME: 'binary_mel'
+
+TRAIN: False
+SAVE: False
+
+
+N_EPOCHS: 20
+N_BATCH: 32
+RANDOM_STATE: 256
+SAMPLE_SIZE: 1.0
+TEST_SIZE: 0.2
+LEARNING_RATE: 0.001
+MOMENTUM: 0.9
+
+spectrogram_params:
+    fs: 48000
+    nfft: 512
+    nperseg: 512
+    noverlap: 128
+    window: 'hann'
+
+torch_spectrogram_params:
+    n_fft: 512
+    power: 2
+    win_length: 512
+    hop_length: 384
+
+torch_melspec_params:
+    n_fft: 512
+    power: 2
+    win_length: 512
+    hop_length: 384
