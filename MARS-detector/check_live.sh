@@ -12,29 +12,10 @@ exit_abnormal() {
     exit 1
 }
 
-while getopts "hm:s:o:" flag; do
+while getopts "h:o:" flag; do
     case "${flag}" in
-        m) 
-            mm=${OPTARG}
-            re_isanum='^[0-9]+$'                    # Regex: match whole numbers only
-            if ! [[ $TIMES =~ $re_isanum ]] ; then  # if $TIMES not whole:
-                echo "Error: TIMES must be a positive, whole number."
-                exit_abnormal
-            fi
-            ;;
-        s) 
-            ss=${OPTARG}
-            re_isanum='^[0-9]+$'                    # Regex: match whole numbers only
-            if [[ $TIMES =~ $re_isanum ]] ; then    # if $TIMES not whole:
-                echo "Error: TIMES must be a positive, whole number."
-                exit_abnormal
-            elif [ $TIMES -eq "0" ]; then           # If it's zero:
-                echo "Error: TIMES must be greater than zero."
-                exit_abnormal                       # Exit abnormally.
-            fi
-            ;;
         o)
-            output=${OPTARG}
+            save_file=${OPTARG}
             ;;
         h) 
             exit_abnormal
@@ -55,6 +36,6 @@ if [[ $? = 1 ]] ; then
     echo WHALE!;
     cp $tmp_file $save_file
 else
-    echo "NO WHALE";
+    echo "no whale :(";
 fi
 rm $tmp_file
