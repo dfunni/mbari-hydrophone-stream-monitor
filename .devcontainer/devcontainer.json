@@ -30,6 +30,7 @@
 	
 	"mounts": [
 		// {"source": "/media/dave/Data/fathomnet-out-of-sample-detection/data", "target": "/data", "type": "bind"} // ubuntu 22.04 dev env
+		// {"source": "/home/dfunni/data", "target": "/data", "type": "bind"} // raspi dev env
 		{"source": "/mnt/f/mars-hydrophone-data/", "target": "/workspaces/mbari-hydrophone-stream-monitor/MARS-data-tagger/assets/data", "type": "bind"} // wsl dev env
 	]
 
