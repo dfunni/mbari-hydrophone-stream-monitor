@@ -1,13 +1,13 @@
-PROJECT_ROOT: '/workspaces/mbari-hydrophone-stream-monitor/'
-INPUT_ROOT: '/workspaces/mbari-hydrophone-stream-monitor/MARS-detector/'
-OUTPUT_ROOT: /workspaces/mbari-hydrophone-stream-monitor/MARS-detector/'
+PROJECT_ROOT: '/app/'
+INPUT_ROOT: '/app/MARS-detector/'
+OUTPUT_ROOT: /app/MARS-detector/'
 
-DATA_ROOT: '/workspaces/mbari-hydrophone-stream-monitor/MARS-data-tagger/assets/data/'
-DATASET_ROOT: '/workspaces/mbari-hydrophone-stream-monitor/MARS-data-tagger/'
-MODEL_ROOT: '/workspaces/mbari-hydrophone-stream-monitor/MARS-detector/models/'
+DATA_ROOT: '/app/MARS-data-tagger/assets/data/'
+DATASET_ROOT: '/app/MARS-data-tagger/'
+MODEL_ROOT: '/app/MARS-detector/models/'
 
 DATASET_JSON: 'recordings.json'
-MODEL_NAME: 'binary_mel'
+MODEL_NAME: 'net'
 
 TRAIN: False
 SAVE: False
