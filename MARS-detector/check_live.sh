@@ -1,8 +1,9 @@
 #!/bin/bash
+cd MARS-detector
 mm=0
 ss=10
 tmp_file=tmp.mp3
-save_file=whales/$(date --utc +%Y%m%d_%H%M%SZ).mp3
+save_file=/app/data/$(date --utc +%Y%m%d_%H%M%SZ).mp3
 outcode=0
 
 usage() {
@@ -36,7 +37,14 @@ ret=$(python infer.py $tmp_file)
 if [[ $ret = 1 ]] ; then
     echo WHALE!;
     cp $tmp_file $save_file
+    rm $tmp_file
+    cd ../data-collection
+    for ((i=1; i<6; i++)) do
+        /bin/bash mbari_record.sh -o /app/data/
+        sleep 7
+    done
 else
+    rm $tmp_file
     echo "no whale :(";
 fi
-rm $tmp_file
+cd ..

@@ -1,7 +1,7 @@
 #!/bin/bash
 cd /home/dfunni/mbari-hydrophone-stream-monitor/ 
-docker container prune -f
-docker run  \
+docker build --network=host -t mars-detect .
+docker run  -it -d \
     --name mars-detect \
     --network host \
     --mount type=bind,source="$(pwd)",target=/app \
