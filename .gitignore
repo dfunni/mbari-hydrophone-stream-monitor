@@ -4,6 +4,7 @@
 triton*/
 *.pdf
 *.pth
+*.pt
 *.env
 cache/
 MARS-data-tagger/recordings.json
