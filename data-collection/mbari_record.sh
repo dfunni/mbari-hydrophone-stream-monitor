@@ -33,7 +33,7 @@ while getopts "hm:s:o:" flag; do
             fi
             ;;
         o)
-            output=${OPTARG}
+            output=${OPTARG}$(date --utc +%Y%m%d_%H%M%SZ).mp3
             ;;
         h) 
             exit_abnormal
