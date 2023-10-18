@@ -11,22 +11,7 @@ import torchaudio
 import torchaudio.transforms as T
 
 from mars_model import BinaryClassifier
-
-def preproccess(filename, transform):
-    '''Performs transform to turn audio into spectrum/ceptstrum tensor
-    Args: 
-        filename [str]: audio file name
-        transform: torch.transfrorms object
-    Returns:
-        X [tensor]: spectrogram tensor'''
-    samples, _ = torchaudio.load(os.path.join(filename))
-    samples = samples[::2].cuda()
-    X = transform(samples)[:,:180,5:]
-    # logarithmic transformation mapping to [1..100]
-    X = 99*(X - X.min()) / (X.max() - X.min()) + 1
-    X = torch.log10(X)
-    X = (X - X.min()) / (X.max() - X.min()) # map to [0..1]
-    return X
+from mars_preprocess import preproccess
 
 
 def main(filename, transform, net):
@@ -46,17 +31,17 @@ if __name__ == "__main__":
     parser.add_argument('filename')
     args = parser.parse_args()
 
-    torch.cuda.empty_cache()
-    torch.set_default_tensor_type('torch.cuda.FloatTensor')
+    torch.set_default_tensor_type('torch.FloatTensor')
     multiprocessing.set_start_method('spawn')
 
     with open('infer_config.yaml', 'r') as ymlfile:
         config = yaml.load(ymlfile, Loader=yaml.Loader)
 
-    net = BinaryClassifier().cuda()
-    net.load_state_dict(torch.load(config['MODEL_ROOT'] + config['MODEL_NAME'] + '.pth'))
+    net = BinaryClassifier()
+    net.load_state_dict(torch.load(config['MODEL_ROOT'] + config['MODEL_NAME'] + '.pth',
+                                   map_location=torch.device('cpu')))
 
-    transform = T.MelSpectrogram(n_mels=180, **config['torch_melspec_params']).cuda()
+    transform = T.MelSpectrogram(n_mels=180, **config['torch_melspec_params']).cpu()
   
     output = main(args.filename, transform, net)
     print(output)
