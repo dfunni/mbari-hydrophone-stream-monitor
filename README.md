@@ -2,6 +2,8 @@
 
 Ultimately, this project will monitor the MBARI hydrophone stream at https://www.mbari.org/soundscape-listening-room/ and send out alerts when humpback whales are vocalizing.
 
+![](screenshots/project-architecture.png)
+
 ### data-collection 
 shell scripts to collect 10 sec data snippets to build dataset, these are run at regular intervals on a rasberry pi
 ### MARS-data-tagger
@@ -14,7 +16,13 @@ dash webapp with the following functionality:
 ![](screenshots/MARS-data-tagger.png)
 
 ### MARS-detector
-currently under construction
+Services to include:
+#### preprocessing
+Batch transform mp3 files into pytorch tesors representing spectrograms, mel-spectrograms, or MFCC functions
+#### training
+Defines model architecture and contains code to load and balance datasets and train models
+#### inference
+Code to run inference on single file input, to be run at regular intervals on a raspberry pi to automate whale detection and follow-on data collection and alert
 
 References:
 
