@@ -34,8 +34,9 @@ done
 
 ffmpeg -y -t 00:$mm:$ss -i https://shoutcast.mbari.org/pacific-soundscape $tmp_file
 ret=$(python infer.py $tmp_file)
+echo $ret
 if [[ $ret = 1 ]] ; then
-    echo WHALE!;
+    echo WHALE!
     cp $tmp_file $save_file
     rm $tmp_file
     cd ../data-collection
@@ -45,6 +46,6 @@ if [[ $ret = 1 ]] ; then
     done
 else
     rm $tmp_file
-    echo "no whale :(";
+    echo "no whale :("
 fi
 cd ..

@@ -1,2 +1,2 @@
 export MAIL_PASSWORD=$(cat /app/mailpass.env)
-./check_live.sh
+./MARS-detector/check_live.sh
