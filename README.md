@@ -1,6 +1,6 @@
 # MBARI Hydrophone Stream Monitor
 
-Ultimately, this project will monitor the MBARI hydrophone stream at https://www.mbari.org/soundscape-listening-room/ and send out alerts when humpback whales are vocalizing.
+Ultimately, this project will monitor the MBARI hydrophone stream at https://www.mbari.org/soundscape-listening-room/ and record audio clips when humpback whales are vocalizing.
 
 ![](screenshots/project-architecture.png)
 
