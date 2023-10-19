@@ -10,8 +10,7 @@ from torch import multiprocessing
 import torchaudio
 import torchaudio.transforms as T
 
-from mars_model import BinaryClassifier
-from mars_preprocess import preproccess
+from pipeline import MARSDataset, preproccess, BinaryClassifier
 
 
 def main(filename, transform, net):

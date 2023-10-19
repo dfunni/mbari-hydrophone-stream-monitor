@@ -22,6 +22,7 @@ def preproccess(filename, transform):
     X = (X - X.min()) / (X.max() - X.min()) # map to [0..1]
     return X
 
+
 def mfcc_transform(filename, transform):
     samples, _ = torchaudio.load(filename)
     samples = samples[::2].cuda()
