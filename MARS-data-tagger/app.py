@@ -1,15 +1,17 @@
 #!/usr/local/bin/python
 
 from dash import Dash, html, dcc, callback, clientside_callback, Output, Input, State, ctx, DiskcacheManager, dash_table
+import dash_mantine_components as dmc
 import diskcache
-from cetacean import MarsClip, pull_data
 import plotly.express as px
 import pandas as pd
 from datetime import datetime
 import json
 import os
 
-import dash_mantine_components as dmc
+
+from utils import MarsClip, pull_data
+
 
 import warnings
 warnings.filterwarnings("ignore")
