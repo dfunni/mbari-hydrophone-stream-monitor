@@ -1,2 +1,2 @@
-export MAIL_PASSWORD=$(cat /app/mailpass.env)
-./MARS-detector/check_live.sh
+export MAIL_PASSWORD=$(cat /workspaces/mbari-hydrophone-stream-monitor/mailpass.env)
+/workspaces/mbari-hydrophone-stream-monitor/MARS-detector/check_live.sh

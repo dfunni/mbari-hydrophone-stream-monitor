@@ -1,16 +1,13 @@
 import warnings
 warnings.filterwarnings("ignore")
 
-import numpy as np
 import torch
 import yaml
-import os
 from argparse import ArgumentParser
 from torch import multiprocessing
-import torchaudio
 import torchaudio.transforms as T
 
-from pipeline import MARSDataset, preproccess, BinaryClassifier
+from pipeline import preproccess, BinaryClassifier
 
 
 def main(filename, transform, net):
@@ -18,10 +15,6 @@ def main(filename, transform, net):
         X = preproccess(filename, transform).unsqueeze(0)
         # calculate outputs by running images through the network
         output = net(X)
-        if output.round().item():
-            call = 'whale'
-        else:
-            call = 'no whale'
         return output.round().int().item()
 
 
@@ -40,7 +33,7 @@ if __name__ == "__main__":
     net.load_state_dict(torch.load(config['MODEL_ROOT'] + config['MODEL_NAME'] + '.pth',
                                    map_location=torch.device('cpu')))
 
-    transform = T.MelSpectrogram(n_mels=180, **config['torch_melspec_params']).cpu()
+    transform = T.MelSpectrogram(**config['torch_melspec_params']).cpu()
   
     output = main(args.filename, transform, net)
     print(output)
