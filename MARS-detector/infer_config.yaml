@@ -1,12 +1,6 @@
-PROJECT_ROOT: '/app/'
-INPUT_ROOT: '/app/MARS-detector/'
-OUTPUT_ROOT: /app/MARS-detector/'
+DATA_ROOT: '/data/'
+MODEL_ROOT: '/workspaces/mbari-hydrophone-stream-monitor/MARS-detector/models/'
 
-DATA_ROOT: '/app/MARS-data-tagger/assets/data/'
-DATASET_ROOT: '/app/MARS-data-tagger/'
-MODEL_ROOT: '/app/MARS-detector/models/'
-
-DATASET_JSON: 'recordings.json'
 MODEL_NAME: 'net'
 
 TRAIN: False
@@ -21,13 +15,6 @@ TEST_SIZE: 0.2
 LEARNING_RATE: 0.001
 MOMENTUM: 0.9
 
-spectrogram_params:
-    fs: 48000
-    nfft: 512
-    nperseg: 512
-    noverlap: 128
-    window: 'hann'
-
 torch_spectrogram_params:
     n_fft: 512
     power: 2
@@ -35,6 +22,7 @@ torch_spectrogram_params:
     hop_length: 384
 
 torch_melspec_params:
+    n_mels: 180
     n_fft: 512
     power: 2
     win_length: 512

@@ -1,9 +1,9 @@
 #!/bin/bash
-cd MARS-detector
+cd /workspaces/mbari-hydrophone-stream-monitor/MARS-detector
 mm=0
 ss=10
 tmp_file=tmp.mp3
-save_file=/app/data/$(date --utc +%Y%m%d_%H%M%SZ).mp3
+save_file=/data/$(date --utc +%Y%m%d_%H%M%SZ).mp3
 outcode=0
 
 usage() {
@@ -41,11 +41,11 @@ if [[ $ret = 1 ]] ; then
     rm $tmp_file
     cd ../data-collection
     for ((i=1; i<6; i++)) do
-        /bin/bash mbari_record.sh -o /app/data/
+        /bin/bash mbari_record.sh
         sleep 7
     done
 else
     rm $tmp_file
     echo "no whale :("
 fi
-cd ..
+ls -l /data/

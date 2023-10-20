@@ -1,11 +1,12 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/python
 {
-	"name": "Python 3",
+	// "name": "Python 3",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/python:1-3.11-bullseye",
-	"runArgs": ["--gpus", "all", "--shm-size=56gb"],
-	
+	"build": {
+		"dockerfile": "../Dockerfile"
+	},
+
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
 
@@ -30,7 +31,8 @@
 	
 	"mounts": [
 		// {"source": "/media/dave/Data/fathomnet-out-of-sample-detection/data", "target": "/data", "type": "bind"} // ubuntu 22.04 dev env
-		{"source": "/home/dfunni/data", "target": "/data", "type": "bind"} // raspi dev env
+		// {"source": "/home/dfunni/data", "target": "/data", "type": "bind"} // raspi dev env
+		{"source": "/home/dfunni/data", "target": "/data", "type": "bind"},
 		// {"source": "/mnt/f/mars-hydrophone-data/", "target": "/workspaces/mbari-hydrophone-stream-monitor/MARS-data-tagger/assets/data", "type": "bind"} // wsl dev env
 	]
 
