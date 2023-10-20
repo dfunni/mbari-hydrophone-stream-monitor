@@ -9,7 +9,7 @@ import torch
 from torch import multiprocessing
 import torchaudio.transforms as T
 
-from pipeline import preproccess, BinaryClassifier
+from pipeline import preproccess, BinaryClassifier, send_email
 
 
 def main(filename, transform, net):
@@ -49,5 +49,9 @@ if __name__ == "__main__":
     transform = T.MelSpectrogram(**config['melspec_params']).cpu()
   
     output = main(args.filename, transform, net)
+    if output:
+        send_email(subject='WHALE!',
+                   body='whale was detected',
+                   receiver='dfunni@gmail.com')
     
     print(output)
