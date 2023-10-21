@@ -3,6 +3,7 @@ warnings.filterwarnings("ignore")
 
 import torch
 import torchaudio
+import logging
 
 
 
@@ -20,7 +21,10 @@ def preproccess(filename, transform):
     X = 99*(X - X.min()) / (X.max() - X.min()) + 1
     X = torch.log10(X)
     X = (X - X.min()) / (X.max() - X.min()) # map to [0..1]
+    logging.debug(f'Preprocess NaN check: {X.isnan().any()}')
+    logging.debug(f'Preprocess shape: {X.shape}')
     return X
+
 
 def mfcc_transform(filename, transform):
     samples, _ = torchaudio.load(filename)
