@@ -1,15 +1,16 @@
 #!/usr/local/bin/python
 
 from dash import Dash, html, dcc, callback, clientside_callback, Output, Input, State, ctx, DiskcacheManager, dash_table
+import dash_mantine_components as dmc
 import diskcache
-from cetacean import MarsClip, pull_data
 import plotly.express as px
 import pandas as pd
 from datetime import datetime
 import json
 import os
 
-import dash_mantine_components as dmc
+from utils import MarsClip, pull_data
+
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -61,15 +62,14 @@ app.layout = dmc.Container([
         ], cols=4),
         dmc.Group([         ## Graph
             dcc.Graph(id='graph-content', 
-                      style={'align': 'left', 'width': "92%"}),
-            dcc.RangeSlider(id='thresh-slider', min=0, max=60, value=[0, 60], vertical=True),
+                        style={'align': 'left', 'width': "92%"}),
         ]),
-        dmc.SimpleGrid([    ## Controls and options
-            dmc.Stack([
+        dmc.SimpleGrid([    ## Controls and view options
+            dmc.Stack([         ## Audio control
                 html.Audio(id='audio-control', controls=True, autoPlay=True),
             ]),
-            dmc.Stack([
-                dmc.Group([
+            dmc.Stack([         ## Data tagging UI
+                dmc.Group([         ## tag select radios
                     html.B('Tag:'),
                     dcc.RadioItems(id='label-radio', 
                                 options=['Next', 'whale+', 'whale', 'no_whale', 'delete'], 
@@ -79,26 +79,26 @@ app.layout = dmc.Container([
                                 inputStyle={'margin-right': "5px",
                                             'margin-left': "20px"}),
                 ]),
-                dmc.Group([
+                dmc.Group([         ## control buttons
                     dmc.Button('Submit / Next', id='submit-btn', n_clicks=0, color='red'),
                     dmc.Button("Refresh Plot", id='refresh-btn', n_clicks=0, color="red",),
                 ]),
             ]),
-            dmc.Stack([     ## statistics
-                html.B('Plot colormap:'),
-                dcc.Dropdown(id='color-dropdown', 
-                             options=colorscales, 
-                             value='jet'),
-            ]),
-            dmc.Stack([
+            dmc.Stack([         ## View by class label
                 html.B('Data to view:'),
                 dcc.Dropdown(id='label-dd', 
                              options=data_dd_options, 
                              value='unlabeled'),
             ]),
+            dmc.Stack([         ## Plot colormap select
+                html.B('Plot colormap:'),
+                dcc.Dropdown(id='color-dropdown', 
+                             options=colorscales, 
+                             value='jet'),
+            ]),
         ], cols=4),
-        dmc.SimpleGrid([    ## Stats
-            dmc.Stack([
+        dmc.SimpleGrid([    ## Stats, index select, and threshold
+            dmc.Stack([         ## Index locations
                 dash_table.DataTable(id='stats-index', 
                                  data=stats_idx, 
                                  columns=stats_idx_cols,
@@ -134,7 +134,7 @@ app.layout = dmc.Container([
                     ]),
                 ]),
             ]),
-            dmc.Stack([
+            dmc.Stack([         ## Stats Table
                 dash_table.DataTable(id='stats-totals',
                                     data=stats_totals,
                                     columns=stats_totals_cols,
@@ -143,15 +143,20 @@ app.layout = dmc.Container([
                                                 'color': "#dee2e6"},
                                     style_header={'fontWeight': 'bold'}),
             ]),
-            dcc.Graph(id='stats-pie'),
-            html.Div(id='debug'),
+            dmc.Stack([         ## Stats pie graph
+                dcc.Graph(id='stats-pie'),
+            ]),
+            dmc.Stack([         ## Threshold control
+                html.B('Colormap thresholds:'),
+                dcc.RangeSlider(id='thresh-slider', min=0, max=60, value=[0, 60]),
+            ]),
         ], cols=4),
     ], spacing='md'),
 
     html.Div([  # storage / hidden
         html.Div(id='filepath', children=initial_file),
         html.Div(id='last-saved'),
-        html.Div(id='iter-state', children='{"whale+": 0, "whale": 0, "no_whale": 0}')
+        html.Div(id='iter-state', children='{"whale+": 0, "whale": 0, "no_whale": 0, "unlabeled": 0}')
     ], hidden=True),
 ], fluid=True)
 
@@ -159,10 +164,11 @@ app.layout = dmc.Container([
 @callback(
     Output('iter-state', 'children'),
     Output('filepath', 'children'),
+    Output('file-input', 'placeholder'),
     Output("whale+-inpt", "value"),
     Output("whale-inpt", "value"),
     Output("nowhale-inpt", "value"),
-    Output('file-input', 'placeholder'),
+    Output('label-dd', 'value'),
     Input('label-dd', 'value'),
     Input('next', 'children'), # dummy signal
     Input("whale+-inpt", "value"),
@@ -170,41 +176,77 @@ app.layout = dmc.Container([
     Input("nowhale-inpt", "value"),
     Input('file-input', 'value'),
     State('iter-state', 'children'))
-def get_file(lable_dd, next, whalep_inpt, whale_inpt, nwhale_inpt, txt_inpt, iter_state):
+def get_file(label_dd, next, whalep_inpt, whale_inpt, nwhale_inpt, txt_inpt, iter_state):
+    """Taking any of the file select inputs, return the file selected, update onscreent 
+    text and index state"""
+
     df = pd.read_json('recordings.json')
     state = json.loads(iter_state)
+
+    def default(df):
+        try:        # show first unlabeled file if there is one
+            filepath = df[df['label'].isna()].iloc[0]
+        except:     # error: show the first whale+
+            filepath = df[df['label'] == 'whale+'].iloc[0]
+        return filepath
+
     inpt = ctx.triggered_id
-    
     if inpt == 'whale-inpt' or inpt == 'nowhale-inpt' or inpt == 'whale+-inpt':
-        state['whale+'] = max(whalep_inpt - 1, 0)
-        state['whale'] = max(whale_inpt - 1, 0)
-        state['no_whale'] = max(nwhale_inpt - 1, 0)
+        # update the state and change the file if label same as dropdown
+        state['whale+'] = max(whalep_inpt, 0)
+        state['whale'] = max(whale_inpt, 0)
+        state['no_whale'] = max(nwhale_inpt, 0)
+        try:
+            filepath = df[df['label'] == label_dd].iloc[state[label_dd]]
+        except:
+            print('failed index update')
+            filepath = default(df)
 
     elif inpt == 'file-input':
-        filepath = df[df['filename'] == txt_inpt].iloc[0]
-
-    elif inpt == 'next' and lable_dd != 'unlabeled': # relabling file
-        updated = next.split(' ')[-1] # get the label
-        if updated != 'Next':
-            state[lable_dd] -= 1 # roll back to the previous index
-    
-    elif lable_dd == 'unlabeled':
-        try:        # show first unlabeled file
-            filepath = df[df['label'].isna()].iloc[0]
-        except:     # error: show the first whale
-            filepath = df[df['label'] == 'whale'].iloc[0]
-    else:   # viewing previously labled data
-        idx = int(state[lable_dd])
+        # change the label dropdown and class index and display file
         try:
-            filepath = df[df['label'] == lable_dd].iloc[idx]
-            state[lable_dd] = idx + 1
-        except:     # loop back to the front
-            filepath = df[df['label'] == lable_dd].iloc[0]
-            state[lable_dd] = 0
+            filepath = df[df['filename'] == txt_inpt].iloc[0]
+            label = filepath['label']
+            subdf = df[df['label'] == label].reset_index()
+            idx = subdf[subdf['filename'] == txt_inpt].index.item()
+            state[label] = idx
+            label_dd = label
+        except:
+            print('failed file input')
+            filepath = default(df)
+            label_dd = 'unlabeled'
+
+    elif inpt == 'next' and label_dd != 'unlabeled': # relabling file
+        # roll back the correct class index in state and get next file in class
+        updated = next.split(' ')[-1] # get the label
+        if updated != 'Next': # relabeling
+            state[label_dd] -= 1 # roll back to the previous index
+        else:
+            state[label_dd] += 1
+        try:
+            filepath = df[df['label'] == label_dd].iloc[state[label_dd]]
+        except:
+            print('failed next button press')
+            filepath = default(df)
+
+    elif inpt == 'next' and label_dd == 'unlabeled':
+        # not allowed, show same file
+        filepath = default(df)
+
+    elif inpt == 'label-dd':
+        ## show currently indexed file of the selected class
+        try:
+            filepath = df[df['label'] == label_dd].iloc[state[label_dd]]
+        except:
+            print('failed drop-down select')
+            filepath = default(df)
 
     
+    else: #initial run
+        # display first unalbeled file, if none show first whale+
+        filepath = default(df)
 
-    return json.dumps(state), filepath.to_json(), state['whale+'], state['whale'], state['no_whale'], filepath['filename']
+    return json.dumps(state), filepath.to_json(), filepath['filename'], state['whale+'], state['whale'], state['no_whale'], label_dd
 
 
 @callback(
