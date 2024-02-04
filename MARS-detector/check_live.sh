@@ -39,7 +39,7 @@ if [[ $ret = 1 ]] ; then
     cp $tmp_file $save_file
     rm $tmp_file
     cd ../data-collection
-    for ((i=1; i<6; i++)) do
+    for ((i=1; i<3; i++)) do
         /bin/bash mbari_record.sh
         sleep 7
     done

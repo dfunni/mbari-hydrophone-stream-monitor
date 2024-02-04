@@ -39,7 +39,8 @@ if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s-%(process)d-%(levelname)s-%(message)s',
                         datefmt='%d-%b-%y %H:%M:%S', 
                         level="DEBUG",
-                        filename='/workspaces/mbari-hydrophone-stream-monitor/MARS-detector/infer.log',
+                        # filename='/workspaces/mbari-hydrophone-stream-monitor/MARS-detector/infer.log',
+                        filename='/var/log/mbari_infer.log',
                         filemode='a')
 
     net = BinaryClassifier()
@@ -49,9 +50,8 @@ if __name__ == "__main__":
     transform = T.MelSpectrogram(**config['melspec_params']).cpu()
   
     output = main(args.filename, transform, net)
-    if output:
-        send_email(subject='WHALE!',
-                   body='whale was detected',
-                   receiver='dfunni@gmail.com')
+#    if output:
+#        send_email(subject='WHALE!',
+#                   body='whale was detected',
+#                   receiver='dfunni@gmail.com')
     
-    print(output)
