@@ -1,5 +1,5 @@
 # cycler==0.10.0
-dash==2.13.0
+dash==2.18.2
 dash[diskcache]
 ipython
 ipykernel
@@ -14,11 +14,11 @@ pydub==0.24.1
 pyyaml==6.0.1
 scipy==1.11.2
 # six==1.15.0
-scikit-learn==1.3.1
+scikit-learn==1.6.1
 # threadpoolctl==2.1.0
-torch==2.0.1
+torch==2.6.0
 torchaudio==2.0.2
 torchsummary==1.5.1
 torchvision==0.15.2
-tqdm==4.66.1
+tqdm==4.67.1
 # Wave==0.0.2
