@@ -39,10 +39,10 @@ stats_idx = [{'Index': 'Whale+ index', 'current / total': "0 / 0"},
              {'Index': 'No Whale index', 'current / total':  "0 / 0"}]
 
 
-app = Dash(__name__, external_stylesheets=[dmc.theme.DEFAULT_COLORS])
+app = Dash(__name__)
 
 
-app.layout = dmc.Container([ 
+app.layout = dmc.MantineProvider([ 
     dmc.Stack([      
         dmc.Title('MARS Data Tagger', id='title', style={'textAlign':'Left'}),
         dmc.SimpleGrid([    ## Pull functions
@@ -109,26 +109,26 @@ app.layout = dmc.Container([
                                  style_data={}),
                 dmc.Stack([
                     dmc.Grid([
-                        dmc.Col([
+                        dmc.GridCol([
                             html.B('Whale+ index:'),
                         ], span=4),
-                        dmc.Col([
+                        dmc.GridCol([
                             dcc.Input(id="whale+-inpt", type="number", debounce=True, value=0),
                         ], span=1),
                     ]),
                     dmc.Grid([
-                        dmc.Col([
+                        dmc.GridCol([
                             html.B('Whale index:'),
                         ], span=4),
-                        dmc.Col([
+                        dmc.GridCol([
                             dcc.Input(id="whale-inpt", type="number", debounce=True, value=0),
                         ], span=1),
                     ]),
                     dmc.Grid([
-                        dmc.Col([
+                        dmc.GridCol([
                             html.B('No Whale index:'),
                         ], span=4),
-                        dmc.Col([
+                        dmc.GridCol([
                             dcc.Input(id="nowhale-inpt", type="number", debounce=True, value=0),
                         ], span=1),
                     ]),
@@ -151,14 +151,14 @@ app.layout = dmc.Container([
                 dcc.RangeSlider(id='thresh-slider', min=0, max=60, value=[0, 60]),
             ]),
         ], cols=4),
-    ], spacing='md'),
+    ], gap='md'),
 
     html.Div([  # storage / hidden
         html.Div(id='filepath', children=initial_file),
         html.Div(id='last-saved'),
         html.Div(id='iter-state', children='{"whale+": 0, "whale": 0, "no_whale": 0, "unlabeled": 0}')
     ], hidden=True),
-], fluid=True)
+])
 
 
 @callback(
