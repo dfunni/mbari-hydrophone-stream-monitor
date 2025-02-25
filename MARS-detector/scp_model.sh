@@ -4,7 +4,7 @@
 
 
 usage() {
-    echo "Usage: $0  <model.pth>" 1>&2
+    echo "Usage: $0  <models/model.pth>" 1>&2
 }
 exit_abnormal() {
     usage
@@ -26,4 +26,4 @@ while getopts "h:" flag; do
     esac
 done
 
-scp /workspaces/mbari-hydrophone-stream-monitor/MARS-detector/models/$1 dfunni@192.168.0.141:/home/dfunni/mbari-hydrophone-stream-monitor/MARS-detector/models/net.pth
+scp /workspaces/mbari-hydrophone-stream-monitor/MARS-detector/$1 dfunni@192.168.0.141:/home/dfunni/mbari-hydrophone-stream-monitor/MARS-detector/models/net.pth

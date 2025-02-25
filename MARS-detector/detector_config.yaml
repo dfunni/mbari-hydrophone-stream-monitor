@@ -7,7 +7,7 @@ DATASET_ROOT: '/workspaces/mbari-hydrophone-stream-monitor/MARS-data-tagger/'
 MODEL_ROOT: '/workspaces/mbari-hydrophone-stream-monitor/MARS-detector/models/'
 
 DATASET_JSON: 'recordings.json'
-MODEL_NAME: 'binary_mel_c'
+MODEL_NAME: 'binary_mel_800'
 
 TRAIN: False
 SAVE: False
@@ -20,6 +20,7 @@ SAMPLE_SIZE: 1.0
 TEST_SIZE: 0.2
 LEARNING_RATE: 0.0001
 MOMENTUM: 0.9
+STAGNATION: 5
 
 # TRANSFORM: 'spectrogram'
 TRANSFORM: 'melspectrogram'

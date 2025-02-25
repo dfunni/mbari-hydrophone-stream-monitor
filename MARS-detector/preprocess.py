@@ -10,7 +10,8 @@ import yaml
 from torch import multiprocessing
 import torchaudio
 import torchaudio.transforms as T
-
+from tqdm import tqdm
+tqdm.pandas()
 
 def spec_transform(filename, transform):
     samples, _ = torchaudio.load(os.path.join(config['DATA_ROOT'], filename))
@@ -40,16 +41,16 @@ if __name__ == "__main__":
 
     data = pd.read_json(config['DATASET_ROOT'] + config['DATASET_JSON'])
     data.dropna(inplace=True) # drop unlabeled files
-    data['y'] = data['label'].apply(lambda x: 1 if x == 'whale+' else 0)
+    data['y'] = data['label'].progress_apply(lambda x: 1 if x == 'whale+' else 0)
 
     if config['TRANSFORM'] == 'spectrogram':
         transform = T.Spectrogram(**config['torch_spectrogram_params']).cuda()
-        _ = data['filename'].apply(lambda x: spec_transform(x, transform))
+        _ = data['filename'].progress_apply(lambda x: spec_transform(x, transform))
 
     elif config['TRANSFORM'] == 'melspectrogram':
         transform = T.MelSpectrogram(**config['torch_melspec_params']).cuda()
-        _ = data['filename'].apply(lambda x: spec_transform(x, transform))
+        _ = data['filename'].progress_apply(lambda x: spec_transform(x, transform))
     
     elif config['TRANSFORM'] == 'mfcc':
         transform = T.MFCC(n_mfcc=180, melkwargs=config['torch_melspec_params']).cuda()
-        _ = data['filename'].apply(lambda x: mfcc_transform(x, transform))
+        _ = data['filename'].progress_apply(lambda x: mfcc_transform(x, transform))

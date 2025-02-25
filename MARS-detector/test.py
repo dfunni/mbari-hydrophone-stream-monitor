@@ -20,30 +20,30 @@ with open('detector_config.yaml', 'r') as ymlfile:
     config = yaml.load(ymlfile, Loader=yaml.Loader)
 
 
-def train(loader):   
-    running_loss = 0.0
-    for i, (inputs, labels, _) in enumerate(tqdm(loader), 0): # loop through batches
-        # move data to GPU
-        inputs = inputs.cuda()  
-        labels = labels.cuda().float()
+# def train(loader):   
+#     running_loss = 0.0
+#     for i, (inputs, labels, _) in enumerate(tqdm(loader), 0): # loop through batches
+#         # move data to GPU
+#         inputs = inputs.cuda()  
+#         labels = labels.cuda().float()
         
-        # check that inputs are valid
-        assert ~torch.isnan(inputs).any(), f'input error (nan): {inputs}'
-        assert ~torch.isinf(inputs).any(), f'input error (inf): {inputs}'
+#         # check that inputs are valid
+#         assert ~torch.isnan(inputs).any(), f'input error (nan): {inputs}'
+#         assert ~torch.isinf(inputs).any(), f'input error (inf): {inputs}'
         
-        # zero the parameter gradients
-        optimizer.zero_grad()
+#         # zero the parameter gradients
+#         optimizer.zero_grad()
 
-        # forward + backward + optimize
-        outputs = net(inputs).squeeze()
-        loss = criterion(outputs, labels)
-        loss.backward()
-        optimizer.step()
+#         # forward + backward + optimize
+#         outputs = net(inputs).squeeze()
+#         loss = criterion(outputs, labels)
+#         loss.backward()
+#         optimizer.step()
 
-        # generate statistics
-        running_loss += loss.item()
-    train_loss = running_loss / (i+1)
-    return train_loss
+#         # generate statistics
+#         running_loss += loss.item()
+#     train_loss = running_loss / (i+1)
+#     return train_loss
 
 
 def validate(loader):
@@ -85,15 +85,16 @@ if __name__ == "__main__":
                                       test_size=config['TEST_SIZE'], 
                                       random_state=config['RANDOM_STATE'],
                                       stratify=data['y'])
-    trainset = MARSDataset(X_train)
+    # trainset = MARSDataset(X_train)
     testset = MARSDataset(X_val)
+    # testset = MARSDataset(data)
 
 
-    trainloader = DataLoader(trainset,
-                            batch_size=config['N_BATCH'], 
-                            shuffle=True, 
-                            num_workers=2,
-                            generator=torch.Generator(device='cuda'))
+    # trainloader = DataLoader(trainset,
+    #                         batch_size=config['N_BATCH'], 
+    #                         shuffle=True, 
+    #                         num_workers=2,
+    #                         generator=torch.Generator(device='cuda'))
 
     testloader = DataLoader(testset, 
                             batch_size=config['N_BATCH'], 
@@ -101,44 +102,31 @@ if __name__ == "__main__":
                             num_workers=2,
                             generator=torch.Generator(device='cuda'))
 
-    net = BinaryClassifier().cuda()
+    # net = BinaryClassifier().cuda()
     criterion = nn.BCELoss()
-    optimizer = optim.Adam(net.parameters(),
-                        lr=config['LEARNING_RATE'])
+    # optimizer = optim.Adam(net.parameters(),
+    #                     lr=config['LEARNING_RATE'])
     
-    min_loss = 1000000.0
-    stagnation_counter = 0
+    # min_loss = 1000000.0
 
-    for epoch in range(config['N_EPOCHS']): # loop through epochs
-        
-        # check if model has not improved recently and reload
-        if stagnation_counter >= config['STAGNATION']:
-            net = BinaryClassifier().cuda()
-            net.load_state_dict(torch.load(config['MODEL_ROOT'] + config['MODEL_NAME'] + '.pth'))
-            stagnation_counter = 0
-            print("stagnant training session, reloading...")
+    # for epoch in range(config['N_EPOCHS']): # loop through epochs
+        # print(f'Epoch: {epoch+1} / {config["N_EPOCHS"]}')
+        # net.train()
+        # train_loss = train(trainloader)
+        # net.eval()
+        # val_loss, _ = validate(testloader)
 
-        print(f'Epoch: {epoch+1} / {config["N_EPOCHS"]}')
-        
-        net.train()
-        train_loss = train(trainloader)
-        
-        net.eval()
-        val_loss, _ = validate(testloader)
+        # print(f'LOSS train {train_loss:.4f} | val {val_loss:.4f}')
 
-        print(f'LOSS train {train_loss:.4f} | val {val_loss:.4f}')
-
-        # save off model if best performing yet
-        if val_loss < min_loss:
-            min_loss = val_loss
-            stagnation_counter = 0 # reset
-            print('saving...')
-            torch.save(net.state_dict(), config['MODEL_ROOT'] + config['MODEL_NAME'] + '.pth')
-        else:
-            stagnation_counter += 1
+        # # save off model if best performing yet
+        # if val_loss < min_loss:
+        #     min_loss = val_loss
+        #     print('saving...')
+        #     torch.save(net.state_dict(), config['MODEL_ROOT'] + config['MODEL_NAME'] + '.pth')
     
     # finally load best performing net and get performance metrics
     net = BinaryClassifier().cuda()
+    net.eval()
     net.load_state_dict(torch.load(config['MODEL_ROOT'] + config['MODEL_NAME'] + '.pth'))
     val_loss, (y_true, y_pred) = validate(testloader)
     try:
@@ -147,6 +135,7 @@ if __name__ == "__main__":
         pass
 
     # print(f'Accuracy of the network on the testset: {(correct / total):.4f}')
+    print(f'model: {config["MODEL_NAME"]}')
     print(f'Accuracy:  {accuracy_score(y_true, y_pred):.4f}')
     print(f'Precision: {precision_score(y_true, y_pred):.4f}')
     print(f'Recall:    {recall_score(y_true, y_pred):.4f}')
