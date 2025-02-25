@@ -220,7 +220,8 @@ def get_file(label_dd, next, whalep_inpt, whale_inpt, nwhale_inpt, txt_inpt, ite
         # roll back the correct class index in state and get next file in class
         updated = next.split(' ')[-1] # get the label
         if updated != 'Next': # relabeling
-            state[label_dd] -= 1 # roll back to the previous index
+            # state[label_dd] -= 1 # roll back to the previous index
+            pass # stay at present index
         else:
             state[label_dd] += 1
         try:
